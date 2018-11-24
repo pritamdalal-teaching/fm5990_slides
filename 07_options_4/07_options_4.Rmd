@@ -1,0 +1,432 @@
+---
+title: "Options Part 4"
+author: "Pritam Dalal"
+output: 
+  beamer_presentation:
+    theme: "default"
+    colortheme: "fly"
+    fonttheme: "default"
+    df_print: tibble
+header-includes:
+   - \usepackage{amsmath}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+```
+
+## Calculating PNL (1 of 8)
+
+- Suppose you trade an option $\mathcal{O}$ at a price $P$ on trade-date $T_{1}$.
+\vspace{10pt}
+- Suppose you hold the option until expiration, which is trade-date $T_{n}$.
+\vspace{10pt}
+- The letter $i$ will serve as an index over the trade-dates, so $i = 1,\ldots,n$. 
+
+
+## Calculating PNL (2 of 8)
+- Let $B_{i}$ and $A_{i}$ be the end-of-day bid/ask prices of the option for trade-date $T_{i}$.  
+\vspace{10pt}
+- Note that $B_{n} = A_{n} = \text{option-payoff}$.
+\vspace{10pt}
+- $D_{i}$ - daily PNL for the trade as of end-of-day $T_{i}$.
+\vspace{10pt}
+- $C_{i}$ - trade-to-date (cummulative) PNL for the trade as of end-of-day $T_{i}$.
+\vspace{10pt}
+- **Intuition:** The cummulative PNL on a trade is how much money you make if you unwind the trade at current market values.
+
+
+## Calculating PNL (3 of 8)
+
+*Cummulative as Sum of Daily:* **BUY**
+
+
+\begin{align*}
+D_{i} &= \begin{cases} B_{1} - P & i = 1 \\ B_{i} - B_{i-1} & i > 1 \end{cases} \\[10pt]
+C_{i} &= \sum_{k=1}^{i} D_{k}
+\end{align*}
+
+&nbsp;
+
+**Exercise:** Show that $C_{j} = B_{j} - P$. 
+
+
+## Calculating PNL (4 of 8)
+ 
+*Cummulative as Sum of Daily:*  **SELL**
+
+
+\begin{align*}
+D_{i} &= \begin{cases} P - A_{1} & i = 1 \\ A_{i-1} - A_{i} & i > 1 \end{cases} \\[10pt]
+C_{i} &= \sum_{k=1}^{i} D_{k}
+\end{align*}
+
+&nbsp;
+
+**Exercise:** Show that $C_{i} = P - A_{i}$. 
+
+
+
+## Calculating PNL (5 of 8)
+
+*Daily as Change in Cummulative:* **BUY**
+
+
+\begin{align*}
+C_{i} &= B_{i} - P \\[10pt]
+D_{i} &= \begin{cases} C_{1} & i = 1 \\ C_{i} - C_{i-1} & i > 1 \end{cases}
+\end{align*}
+
+&nbsp;
+
+**Exercise:** Show that both formulations of $D_{i}$ are equivalent.
+
+
+## Calculating PNL (6 of 8)
+
+*Daily as Change in Cummulative:* **SELL**
+
+
+\begin{align*}
+C_{i} &= P - A_{i} \\[10pt]
+D_{i} &= \begin{cases} C_{1} & i = 1 \\ C_{i} - C_{i-1} & i > 1 \end{cases}
+\end{align*}
+
+&nbsp;
+
+**Exercise:** Show that both formulations of $D_{i}$ are equivalent.
+
+
+
+## Calculating PNL (7 of 8)
+
+- Suppose on 9/16/2013 we buy the 169 SPY expiring 9/21, paying EOD Ask.  
+
+- Here is the price data for that option until expiration:
+```{r, echo=FALSE}
+library(tidyverse)
+library(dplyr)
+df_option_history <- read_csv("data_practice_option_history.csv")
+
+df_put_hist <-
+  df_option_history %>%
+    dplyr::filter(underlying == "SPY") %>%
+    dplyr::filter(expiration == "2013-09-21") %>%
+    dplyr::filter(trade_date >= "2013-09-11") %>%
+    dplyr::filter(type == "put") %>%
+    dplyr::filter(strike == 169) %>%
+    arrange(trade_date) %>%
+    #select(trade_date, underlying, type, expiration, strike, upx, bid, ask)
+    select(trade_date, bid, ask)
+df_put_hist
+```
+
+
+## Calculating PNL (8 of 8)
+
+**Exercise:** Verify the following PNL calculations.
+```{r}
+df_put_hist <-
+  df_put_hist %>% 
+    mutate(D_i = 0, C_i = 0)
+
+for (ix_date in 1:nrow(df_put_hist)){
+  if (ix_date == 1) {df_put_hist$D_i[ix_date] <- df_put_hist$bid[ix_date] - df_put_hist$ask[ix_date]}
+  else {df_put_hist$D_i[ix_date] <- df_put_hist$bid[ix_date] - df_put_hist$bid[ix_date - 1]}
+  
+  df_put_hist$C_i[ix_date] = sum(df_put_hist$D_i[1:ix_date])
+}
+df_put_hist
+```
+
+
+
+## Black-Scholes-Merton Formula (1 of 1)
+\vspace{-25pt}
+\begin{align*}
+m = \text{BSM}(\text{p/c}, K, \text{T}, S_{t},\sigma, \delta, r)
+\end{align*}
+
+**Contract Features**
+
+- p/c - put or call
+
+- $K$ - strike price
+
+- T - expiration date (time to expiration)
+
+**Market Values**
+
+- $S_{t}$ - current underlying price
+
+- $\sigma$ - estimate of the standard deviation log-return of the price of underlying between now and expiration
+
+- $\delta$ - estimate of dividends paid over the life of the option
+
+- $r$ - risk-free interest rate
+
+## Black-Scholes-Merton Formula (2 of 2)
+
+- For this class, we won't need to examine the BSM formula too closely, or write a BSM function from scratch.
+\vspace{10pt}
+- A more important skill wil be to use pre-existing BSM functions (and implied volatility functions) in analysis code.
+\vspace{10pt}
+- I usually use the `fOptions` package.
+\vspace{10pt}
+- **Exercise:**  Install the `fOptions` package and quickly read through pp 22-27 of its documentation PDF. 
+
+## Greeks Preview (1 of 4)
+
+```{r, echo=FALSE, fig.height = 4.5, fig.width=6.67, out.width="100%"}
+library(fOptions)
+library(bizdays)
+library(tidyverse)
+library(gridExtra)
+
+type = "c"
+upx = seq(90, 110, 1)
+strike = 100
+time = 21/252
+rf = 0.01
+div = 0
+vol = 0.25
+
+option_values <-
+  GBSCharacteristics(
+    TypeFlag = type
+    , S = upx
+    , X = strike
+    , Time = time
+    , r = rf
+    , b = div
+    , sigma = vol
+  )
+
+
+graph_values <-
+  tibble(
+    upx = upx
+    , intrinsic = map_dbl(upx, function(x) max(x - strike, 0))
+    , px = option_values$premium
+    , delta = option_values$delta
+    , vega = option_values$vega / 100
+    , theta = option_values$theta / 252
+  )
+
+
+p1 <-
+ggplot(data = graph_values ) +
+  geom_line(aes(x = upx, y = intrinsic), size = 0.75) +
+  geom_line(aes(x = upx, y = px), color = "green4") +
+  geom_vline(xintercept = 100, color = "red", lty = "dashed") +
+  labs(
+       x = ""
+       ,y = ""
+  ) +
+  annotate("text", label = "option price" , x = 93, y = 9.99, size = 4, colour = "black")
+
+p2 <-
+ggplot(data = graph_values ) +
+  geom_line(aes(x = upx, y = delta), color = "blue") +
+  geom_vline(xintercept = 100, color = "red", lty = "dashed") +
+  labs(
+       x = ""
+       , y = ""
+  ) +
+  annotate("text", label = "delta" , x = 91.5, y = 0.875, size = 4, colour = "black")
+
+
+p3 <-
+ggplot(data = graph_values ) +
+  geom_line(aes(x = upx, y = vega), color = "orange") +
+  geom_vline(xintercept = 100, color = "red", lty = "dashed") +
+  labs(
+       x = "underlying price"
+       , y = ""
+  ) +
+  annotate("text", label = "vega" , x = 91.5, y = .11, size = 4, colour = "black")
+
+p4 <-
+ggplot(data = graph_values ) +
+  geom_line(aes(x = upx, y = theta), color = "pink") +
+  geom_vline(xintercept = 100, color = "red", lty = "dashed") +
+  labs(
+       x = "underlying price"
+       , y = ""
+  ) +
+  annotate("text", label = "theta" , x = 93, y = -0.025, size = 4, colour = "black")
+
+
+
+gridExtra::grid.arrange(p1, p2, p3, p4
+                        , nrow = 2
+                        , top = "Greeks vs Underlying Price")
+```
+
+
+## Greeks Preview (2 of 4)
+```{r, echo=FALSE}
+library(fOptions)
+library(tidyverse)
+library(gridExtra)
+
+
+type = "c"
+upx = seq(90, 105, 1)
+strike = 100
+time = c(21, 10, 5, 1)
+rf = 0.01
+div = 0
+vol = 0.25
+
+
+df_graph_data <- tibble(
+  desc = "0"
+  , upx = upx
+  , value = map_dbl(upx, function(x) max(x - strike, 0))
+)
+
+
+for (ix_time in 1: length(time)){
+## for ix_time start ##########
+option_values <-
+  GBSCharacteristics(
+  TypeFlag = type
+  , S = upx
+  , X = strike
+  , Time = time[ix_time]/252
+  , r = rf
+  , b = div
+  , sigma = vol
+  )
+
+
+df_add_values <- tibble(
+  desc = as.character(time[ix_time])
+  , upx = upx
+  , value = option_values$premium
+)
+
+df_graph_data <-
+  bind_rows(df_graph_data, df_add_values)
+## for ix_time end ############
+}
+
+# this is the plot mothafucka
+ggplot() +
+  geom_line(
+            data = df_graph_data %>% dplyr::filter(desc != "0")
+            , aes(x = upx, y = value, color = desc)
+  ) +
+  scale_color_discrete(
+                       name = "trade days\nto expiration"
+                       , breaks = c("21", "10", "5", "1")
+                       , labels = c("21", "10", "05", "01")
+  ) +
+  geom_line(
+            data = df_graph_data %>% dplyr::filter(desc == "0")
+            , aes(x = upx, y = value)
+            , size = 0.75
+  ) +
+  theme(legend.position = c(0.15,0.65)) +
+  labs(
+       title = "The Effect of Time on Option Value"
+       , x = "underlying price"
+       , y = "option price"
+  )
+```
+
+
+
+## Greeks Preview (3 of 4)
+```{r, out.width="100%"}
+library(fOptions)
+library(bizdays)
+library(tidyverse)
+library(gridExtra)
+
+
+type = "c"
+upx = seq(90, 105, 1)
+strike = 100
+time = 21/252
+rf = 0.01
+div = 0
+vol = seq(0.10, 0.30, 0.05)
+
+
+df_graph_data <- tibble(
+  vol = 0
+  , upx = upx
+  , value = map_dbl(upx, function(x) max(x - strike, 0)) 
+)
+
+
+for (ix_vol in 1: length(vol)){
+## for ix_vol start ##########
+option_values <- 
+  GBSCharacteristics(
+  TypeFlag = type
+  , S = upx
+  , X = strike
+  , Time = time
+  , r = rf
+  , b = div
+  , sigma = vol[ix_vol]
+  )
+
+
+df_add_values <- tibble(
+  vol = vol[ix_vol]
+  , upx = upx
+  , value = option_values$premium
+)
+
+df_graph_data <-
+  bind_rows(df_graph_data, df_add_values)
+## for ix_time end ############
+}
+
+# this is the plot mothafucka
+ggplot() +
+  geom_line(
+            data = df_graph_data %>% dplyr::filter(vol != 0)
+            , aes(x = upx, y = value, color = factor(desc(vol)))
+  ) +
+  scale_color_discrete(
+                       name = "volatility"
+                       # , breaks = c("21", "10", "5", "1")
+                       , labels = c("0.30", "0.25", "0.20", "0.15", "0.10")
+  ) +
+  geom_line(
+            data = df_graph_data %>% dplyr::filter(vol == 0)
+            , aes(x = upx, y = value)
+            , size = 0.75
+  ) +
+  theme(legend.position = c(0.15,0.65)) +
+  labs(
+       title = "The Effect of Volatility on Option Value"
+       , x = "underlying price"
+       , y = "option price"
+  )
+
+```
+
+
+## Greeks Preview (4 of 4)
+**Some Facts**
+
+1. Optionality - as evidenced by vega, theta, gamma - is greatest when options are ATM.
+\vspace{10pt}
+2. Theta is Negative: an option loses value as it nears expiration.
+\vspace{10pt}
+3. Vega is Positive: the more volatile the underlying, the more valuable the option.
+\vspace{10pt}
+4. Regarding Delta:
+    - Approximiately 0.50 when option is ATM.  
+    - Approaches 0.00 as option gets farther out of the money.  
+    - Approaches 1.00 as option goes farther in the money.
+    - *VERY roughly* the probability that the option expires ITM.
+    - Used to refer to the moniness of an option.
+

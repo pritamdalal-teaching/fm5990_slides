@@ -1,0 +1,66 @@
+"0","```r
+type = \"c\"
+upx = seq(90, 105, 1)
+strike = 100
+time = 21/252
+rf = 0.01
+div = 0
+vol = seq(0.10, 0.30, 0.05)
+
+
+df_graph_data <- tibble(
+  vol = 0
+  , upx = upx
+  , value = map_dbl(upx, function(x) max(x - strike, 0)) 
+)
+
+
+for (ix_vol in 1: length(vol)){
+## for ix_vol start ##########
+option_values <- 
+  GBSCharacteristics(
+  TypeFlag = type
+  , S = upx
+  , X = strike
+  , Time = time
+  , r = rf
+  , b = div
+  , sigma = vol[ix_vol]
+  )
+
+
+df_add_values <- tibble(
+  vol = vol[ix_vol]
+  , upx = upx
+  , value = option_values$premium
+)
+
+df_graph_data <-
+  bind_rows(df_graph_data, df_add_values)
+## for ix_time end ############
+}
+
+# this is the plot mothafucka
+ggplot() +
+  geom_line(
+            data = df_graph_data %>% filter(vol != 0)
+            , aes(x = upx, y = value, color = factor(desc(vol)))
+  ) +
+  scale_color_discrete(
+                       name = \"volatility\"
+                       # , breaks = c(\"21\", \"10\", \"5\", \"1\")
+                       , labels = c(\"0.30\", \"0.25\", \"0.20\", \"0.15\", \"0.10\")
+  ) +
+  geom_line(
+            data = df_graph_data %>% filter(vol == 0)
+            , aes(x = upx, y = value)
+            , size = 0.75
+  ) +
+  theme(legend.position = c(0.15,0.65)) +
+  labs(
+       title = \"The Effect of Volatility on Option Value\"
+       , x = \"underlying price\"
+       , y = \"option price\"
+  )
+
+```"

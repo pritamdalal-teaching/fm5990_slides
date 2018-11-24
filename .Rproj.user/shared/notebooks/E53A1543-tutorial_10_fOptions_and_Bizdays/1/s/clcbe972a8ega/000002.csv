@@ -1,0 +1,16 @@
+"0","```r
+upx = c(90, 100, 110)
+strike = 100
+time = c(0.75, 1, 1.25)
+rf = 0.01
+div = 0
+vol = 0.25
+
+opt <- GBSOption(c(\"c\", \"p\"), S = upx, X = strike, Time = time, r = rf, b = div, sigma = vol)
+
+opt@price
+
+show(opt)
+
+help(GBSOption)
+```"

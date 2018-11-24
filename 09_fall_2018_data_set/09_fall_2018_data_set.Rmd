@@ -1,0 +1,159 @@
+---
+title: "Fall 2018 Data Set"
+author: "Pritam Dalal"
+output: 
+  beamer_presentation:
+    theme: "default"
+    colortheme: "fly"
+    fonttheme: "default"
+    df_print: tibble
+header-includes:
+   - \usepackage{amsmath}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Location and Access
+
+- The data set that will be used for your final analysis project is now available.
+\vspace{10pt}
+- It is located on my Google Drive folder.  
+\vspace{10pt}
+If you need access, please e-mail me or get a copy of the data from a friend who has access.
+\vspace{10pt}
+- The file is called `fall_2018_data.zip`.
+
+
+
+## Guide to The Data
+
+`df_expirations <-` a guide to the 19 expirations included in the data set, and the execution-date associated with each expiration.
+
+\vspace{5pt}
+`df_underlyings <-` a small file containing data associated with the 50 underlyings that are included in the data set.
+
+\vspace{5pt}
+`df_trading_universe <-` all the options that ever show up in market-history.
+
+\vspace{5pt}
+`df_market_history <-` for each trade-date, the set of OTM options for each underlying, for the next regular expiration.  Most of you will only interact with the entries with trade-date equals execution-date.
+
+\vspace{5pt}
+`df_option_history <-` contains all EOD prices for all options in df_market_history, until expiration.
+
+
+
+## Backtesting Parameters
+
+1. For each expiration, you will trade options on execution date (about one month before expiration).
+\vspace{10pt}
+2. Trades will be placed utilizing knowledge that is available on or before execution date.
+\vspace{10pt}
+3. Nearly all posiiton will be held until expiration, but some groups are looking at early unwind strategies.
+\vspace{10pt}
+4. When calculating the PNL of an option, you might as well calculate the naked option PNL as well as the delta hedged PNL, because you have all the data.
+
+
+
+## Data Wrangling Procedure (1 of 4)
+
+\textcolor{green}{How did I arrive at this particular data set?}
+
+1. Finding the Data Source (Delta Neutral)
+    \vspace{2pt}
+    - Google
+    \vspace{2pt}
+    - Comparing Delta Neutral vs Option Metrics
+    
+\vspace{5pt}
+
+2. Choosing the set of underlyings.
+    \vspace{2pt}
+    - ETFs (non-volatility) - don't have to deal with earnings reports
+    \vspace{2pt}
+    - 100 highest volume (201701-201810)
+    \vspace{2pt}
+    - *material:* tutorials 3-5, exercise 2, tutorial 11
+    \vspace{2pt}
+    - *packages:* `readr`, `dplyr`, `bizdays`
+    \vspace{2pt}
+    - *functions:* `read_csv`, `distinct`, `bizdays`, `group_by`, `summarize`, `arrange`, `mutate`, `write_csv` 
+    
+
+
+## Data Wrangling Procedure (2 of 4)
+
+3. Market History
+    \vspace{5pt}
+    - caluculate implied-forward for every underlying, expiration, trade-date combination
+    \vspace{5pt}
+    - grab all OTM underlying, expiration, trade-date combinations
+    \vspace{5pt}
+    - remove low-information options
+    \vspace{5pt}
+    - relcalulate greeks
+    \vspace{5pt}
+    - *material:* tutorials 3-5, tutorial 7, tutorial 9, exercise 3, tutorial 10, tutorial 11
+    \vspace{5pt}
+    - *packages:* `readr`, `dplyr`, `fOptions`, `bizdays`, `purrr`
+    \vspace{5pt}
+    - *functions:* `read_csv`, `select`, `filter`, `mutate`, `arrange` `inner_join`, `rename`, `top_n`, `pmap_dbl` 
+
+
+## Data Wrangling Procedure (3 of 4)
+    
+3. Option History
+    \vspace{5pt}
+    - for every option that shows up in the market-history, grab all subsequent prices until expiration
+    \vspace{5pt}
+    - calculate payoff on expiration date
+    \vspace{5pt}
+    - *material:* tutorials 3-5, tutorial 7, tutorial 9, exercise 3, tutorials 10-11
+    \vspace{5pt}
+    - *packages:* `readr`, `dplyr`, `purrr`
+    \vspace{5pt}
+    - *functions:* `read_csv`, `select`, `filter`, `mutate`, `arrange` `left_join`, `pmap_dbl`  
+
+## Data Wrangling Procedure (4 of 4)
+
+4. Data Cleaning
+    \vspace{5pt}
+    - graphing skews and prices to check for any obvious anomolies
+    \vspace{5pt}
+    - checking for missing data
+    \vspace{5pt}
+    - removing any underlyings that seem suspect (57 remaining, I  rounded down to 50 for simplicity)
+    \vspace{5pt}
+    - *material:* tutorials 3-5, tutorial 7-9, exercise 3, tutorial 10, tutorial 11
+    \vspace{5pt}
+    - *packages:* `readr`, `tidyr`,  `dplyr`, `purrr`
+    \vspace{5pt}
+    - *functions:* `distinct`,  `group_by`, `summarize`, `inner_join`, `left_join`, `pmap_dbl`, `crossing`, `ggplot`, `facet_wrap`
+\vspace{10pt}
+5. \textcolor{red}{Depressing Fact} - very little actual *analysis* has occured yet.
+
+
+## Data Integrity and Cleaning Exercises (1 of 2)
+
+\textbf{Note:} it will be useful to use the `join` functions in in `dplyr` to complete a lot of these exercise: `inner_join()`, `left_join()`.
+
+\vspace{10pt}
+1. Check that `df_trading_universe`, `df_market_history`, and `df_option_history` all have the same number of unique options represented.
+
+\vspace{10pt}
+2. Check that `df_trading_universe` and `df_market_history` have one row per option, per trade-date.
+
+\vspace{10pt}
+3. Check that every underlying has at least 4 options in `df_market_history` on each execution date.
+
+## Data Integrity and Cleaning Exercises (2 of 2)
+
+
+4. Check that once an option shows up in `df_market_history` that it has entries in `df_option_history` for all subsequent days until expiration.
+\vspace{10pt}
+5. Make sure that in `df_option_history` on expiration day the bid and ask are both equal to the options payoff.
+\vspace{10pt}
+6. In `df_underlyings` write a function that converts the `aum` column from a character into a number.
+

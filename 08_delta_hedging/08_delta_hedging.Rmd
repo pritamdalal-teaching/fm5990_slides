@@ -1,0 +1,233 @@
+---
+title: "Delta Hedging"
+author: "Pritam Dalal"
+output: 
+  beamer_presentation:
+    theme: "default"
+    colortheme: "fly"
+    fonttheme: "default"
+    df_print: tibble
+header-includes:
+   - \usepackage{amsmath}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Three Related Concepts
+
+- The ultimate goal of this lecture is to talk about delta-hedging and option replication.
+\vspace{10pt}
+- Hedging in an derivatives context is often confused with two other ideas in finance, so I want to spend some time teasing them apart.
+\vspace{10pt}
+- Three related concepts:
+    - Diversification - Investments
+    - Hedging - Investments
+    - Hedging - Derivatives Replication (including Delta-Hedging)
+\vspace{10pt}
+
+- How are these three related? \textbf{{\color{red}Risk Reduction}}.
+
+## Diversification - Investments
+
+- Let $X_1$, $X_2$ be two random variables with the same variance and $corr(X_1, X_2) < 1$.
+\vspace{10pt}
+- Then $sd(0.5 \cdot X_1 + 0.5 \cdot X_2) < sd(X_1) = sd(X_2)$.
+\vspace{10pt}
+- So if you are investing, and you have a choice between two assets that are equally risky (i.e. the same variance of returns), then you will always lower the riskiness of your portfolio by \emph{diversifying} over both assets, rather than just investing in one.
+\vspace{10pt}
+- This result can be generalized to $n$ random variables.
+\vspace{10pt}
+- \textbf{Intuition:} Spread your money over a lot of different non-perfectly correlated investments and you will reduce your overall portfolio risk.
+
+
+## Diversification - Investments (Exercise 1 of 2)
+
+1. Use the `quantmod` package to download 5 years of SPY and IWM price data from Yahoo finance.
+\vspace{10pt}
+2. Use the adjusted close prices to calculated daily log-returns for each ETF.
+\vspace{10pt}
+3. Calculate the standard deviation of the daily returns for both, and then create a seriese of scaled prices for IWM so that the scaled prices has the same standard deviation as SPY.
+\vspace{10pt}
+
+
+
+## Diversification - Investments (Exercise 2 of 2)
+
+4. Calculate a correlation for SPY and scaled-IWM.  This should be close to 1, but not exactly one.
+\vspace{10pt}
+5. Calculate and average price of SPY and scaled-IWM, and calucluate it's standard deviation.
+\vspace{10pt}
+6. See that standard deviation of the diversified portfolio is lower than SPY alone.  Graph all three price paths with `ggplot()` and see if you can visualize the risk reduction.
+
+
+
+## Hedging - Investments
+
+- \emph{Hedging} in an investment context is an extreme form of diversification.
+\vspace{10pt}
+- Suppose you have a position in some asset $A$.
+\vspace{10pt}
+- Suppose you believe that asset $B$ has a strong anti-correlation with $A$: when the price of $A$ goes down, the price of $B$ goes up, and vice-versa.
+\vspace{10pt}
+- If you were to invest in asset $B$ for this reason, it would be referred to as a hedge against $A$.
+\vspace{10pt}
+- In investments, \emph{diversification} (previous concept) exploits uncorrelatedness, while \emph{hedging} exploits anti-correlation. 
+
+
+## Hedging - Investments (Exercise 1 of 2)
+
+1. Use the `quantmod` package to download 5 years of SPY and GDX price data from Yahoo finance.
+\vspace{10pt}
+2. Google the GDX ETF and find out what it's all about.
+\vspace{10pt}
+3. Suppose at the beginning of the 5 year period that you have \$125K to invest.
+\vspace{10pt}
+4. You know that for sure you are going to invest \$100K in SPY, but you're not sure what to do with the additional \$25K. 
+
+## Hedging - Investments (Exercise 1 of 2)
+
+5. You consider two options: 
+    - keep it in cash
+    - invest in GDX
+\vspace{10pt}
+6. Compare the standard deviation of the portfolio returns for each choice.
+\vspace{10pt}
+6. GDX is negatively correlated with SPY, so it would be a hedge in the investment sense.  Confirm this by comparing the standard deviations of the two portfolios and also by visualizing with `ggplot()`.
+
+
+## Hedging - Derivatives Replication
+
+- \emph{Hedging} in the context of derivatives means something quite different.
+\vspace{10pt}
+- It refers to engaging in a set of trades - called a \emph{replicating portfolio} - that perfectly replicates the payoff of a derivative.
+\vspace{10pt}
+- If you can find such a replicating portfolio, and that replicating portfolio has a a known cost, then that is the \emph{no arbitrage} price of the derivative.
+\vspace{10pt}
+- Hedging is a both a theoretical pricing technique, and also a prescription for action for a trading desk that deals derivative contracts to its customers.
+
+
+## Forward Contract - Replicating Portfolio
+
+- Let's say that Yuchen works for Wolverine Trading's forward contract desk.
+\vspace{10pt}
+- Yifei is one of Yuchen's customers and wants to engage in a forward contract to buy a single share of SPY, 2 months from now.
+\vspace{10pt}
+- Let's say the current price of SPY is 265, and that the two-month interest rate is 1\%.  Suppose further that SPY does not pay any dividends between now and the expiration date of the forward contract.
+\vspace{10pt}
+- The price which Yifei agrees to buy SPY in 2 months is called the \emph{forward price}.  Let's call it $F$.
+
+## Forward Contract - Replicating Portfolio
+
+- When $F = 265 \cdot (1 + 0.01) = 267.65$, the forward contract has zero cost at the time of inception.
+\vspace{10pt}
+- The reason for this is that Yuchen can create a replicating portfolio for zero cost right now, that perfectly matches the payoff/obligations of the derivative.
+\vspace{10pt}
+- Yuchen's replicating portfolio consists of the following:
+    - He borrows 265 for two months. (short a bond)
+    - He buys a share of SPY. (long the underlying)
+\vspace{10pt}
+- When the contract expires, Yuchen will collect 267.65 from Yefei and deliver the the stock.  With the 267.65 that Yuchen collected, he will repay his loan, the balance of which is exactly 267.65.
+
+
+## Forward Contract - Replicating Portfolio
+
+- If Yuchen were to charge a slightly higher forward price on his contract, say 270, then engaging in the foward contract would yield 3.35 in riskless profit, two months from the inception of the contract, which at that time has a present value of $3.35 \cdot (1 + 0.01)^{-1} = 3.32$.
+\vspace{10pt}
+- Notice that Yuchen takes no risk, which is the ideal situation for a derivatives desk.
+\vspace{10pt}
+- The replicating portfolio does two thing for us:
+      - gives us a way to argue zero cost forward price
+      - give Yuchen a prescription for action.
+
+## Forward Contract - Replicating Porfolio
+
+- Yuchen's trades of a short bond and buying underlying is an example of a replicating portfolio.
+\vspace{10pt}
+- It's also an example of a \emph{static hedge} because it doesn't require any adjustments during the life of the contract - set it and forget it.
+\vspace{10pt}
+- More complicated derivative, like vanilla options, require \emph{dynamic hedging} - replicating portfolio which much be adjusted frequently.
+
+
+## Black-Scholes-Merton Option Pricing
+
+
+- The BSM framework is a means for defining the price of an option, call it $P$.
+\vspace{10pt}
+- It makes some stylized assumptions about the nature of the underlying and the market for the underlying.
+    - underlying price $S_{t}$ follows a geometric brownian motion
+    - markets trade continuously without a bid-ask spread
+\vspace{10pt}
+- It posits that to hedge/replicate an options position, that we simply need to hold $-\frac{\partial P}{\partial S_{t}}$ units of the underlying at any point in time.
+
+
+## Black-Scholes-Merton Option Pricing
+
+- Holding $-\frac{\partial P}{\partial S_{t}}$ units of the underlying is referred to as \emph{delta-hedging}.
+\vspace{10pt}
+- Notice that $\frac{\partial P}{\partial S_{t}}$ is a constantly changing quantity, so we have to rebalance our delta-hedge frequently, which is what makes this a \emph{dynamic} hedging strategy.
+\vspace{10pt}
+- The BSM assumptions are demostrably false, but they are close enough to being right that delta-hedging is a useful practice for derivatives dealers and options market-makers.
+
+## Black-Scholes-Merton Option Pricing
+
+- BSM assumes that $S_{t}$ follows a geometric brownian motion.  
+\vspace{10pt}
+- The is equivalent to saying that log-return of $S_{t}$ over any time scale is normally distrubuted, and that returns over disjoint time periods are independent. (wrong and wronger)
+\vspace{10pt}
+- For the purposes the option pricing, the most important feature of the GBM price process $S_{t}$ is it's volatility, which is typically denoted $\sigma$.
+\vspace{10pt}
+- $\sigma$ is the standard-devation of the log-returns over one unit of time (the industry standard is to quote $\sigma$ for one year).
+
+
+## Delta Hedging Example
+
+- Suppose Yuchen and Yefei live in a Black-Scholes world.
+\vspace{10pt}
+- Yuchen has been promoted to Wolverine's option's desk and his best customer Yefei has upgraded from forwards to buying call options on SPY.
+\vspace{10pt}
+- Yuchen predicts that the volatility of SPY will be $\sigma_{*}$ over the life of the option, for which BSM gives a price of $P_{*}$.
+\vspace{10pt}
+- Yuchen sells Yefei the call option - charging $P_{*}$ - and then engages in dynamic delta-hedging.  He rebalances his delta daily.
+
+
+## Delta Hedging Example 
+
+- Let's suppose that the realized volatilty is $\sigma_{r}$ and the BSM for that volatility is $P_{r}$.
+\vspace{10pt}
+- They Yuchen's PNL will be \emph{approximately}:
+\begin{align*}
+P_{*} - P_{r} = V * (sigma_{*} - sigma_{r})   
+\end{align*}
+where $V$ is the vega of the option.
+\vspace{10pt}
+- This is approximately his PNL, because of daily delta-hedging.  
+\vspace{10pt}
+- If Yuchen delta-hedged continuously, as BSM prescribes, this PNL would be exact and deterministic. 
+
+
+## Delta Hedging Example 
+
+- Notice that Yuchen's PNL is a function of the difference between his pricing volaililty (implied) and the realized volatility.
+\vspace{10pt}
+- One of the major insights of the BSM framework is that a delta-hedged option position is a position in realized volatility.
+\vspace{10pt}
+- Intuition: an option price function has positive curvature (gamma).  By delta hedging, you are removing the linear part of the option price changes, but there are still the second-order effects of changes in the price of the underlying.
+\vspace{10pt}
+- Verify for yourself that if you have a short delta-hedged option position, that your delta-hedging always has you buying high and selling low. Not good.
+
+
+## Facts about Delta-Hedged Options Positions
+
+1. Consider a call and put with the same underlying, strike, and expiration. Then the delta-hedged call is equivalent to the delta-hedged put.
+\vspace{10pt}
+2. The PNL of a naked option position will have a higher variance than the PNL of it's delta-hedged counterpart.  But the PNL of the delta-hedged position is not zero.
+\vspace{10pt}
+3. A long delta-hedged option position is long realized volatility.
+\vspace{10pt}
+4. A short delta-hedged option position is short realized volatility.
+
+
+
+\textbf{Exercise:} Use your backtesting data to verify \#2, \#3, \#4.
