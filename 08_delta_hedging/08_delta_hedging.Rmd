@@ -194,7 +194,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Delta Hedging Example 
 
-- Let's suppose that the realized volatilty is $\sigma_{r}$ and the BSM for that volatility is $P_{r}$.
+- Let's suppose that the realized volatilty is $\sigma_{r}$ and that the BSM price for that volatility would have been $P_{r}$.
 \vspace{10pt}
 - They Yuchen's PNL will be \emph{approximately}:
 \begin{align*}
@@ -222,7 +222,7 @@ where $V$ is the vega of the option.
 
 1. Consider a call and put with the same underlying, strike, and expiration. Then the delta-hedged call is equivalent to the delta-hedged put.
 \vspace{10pt}
-2. The PNL of a naked option position will have a higher variance than the PNL of it's delta-hedged counterpart.  But the PNL of the delta-hedged position is not zero.
+2. The PNL of a naked option position will have a higher variance than the PNL of it's delta-hedged counterpart.  But the PNL variance of the delta-hedged position is not zero.
 \vspace{10pt}
 3. A long delta-hedged option position is long realized volatility.
 \vspace{10pt}

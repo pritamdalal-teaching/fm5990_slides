@@ -100,7 +100,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Insurance Payoff Graph (1 of 3)
 
-- It's 8aSaturday morning.  Sally is driving on the freeway on her way to CrossFit, hands at 10-2, eyes on the road, listening to classical music.
+- It's 8a on a Saturday morning.  Sally is driving on the freeway on her way to CrossFit, hands at 10-2, eyes on the road, listening to classical music.
 \vspace{10pt}
 - Patty, also driving on the freeway, is on her way home from an all night rave.  As she is driving, she is blasting Bassnectar and posting to her IG story.
 \vspace{10pt}
@@ -122,16 +122,6 @@ payoff <- pmax(damage - strike, 0)
 heading <- "insurance payoff"
 plot(damage, payoff, type="n", main="Payoff to Sally")
 lines(damage, payoff, type="l")
-# 
-# x <- c(1:5); y <- x # create some data 
-# par(pch=22, col="red") # plotting symbol and color 
-# par(mfrow=c(2,4)) # all plots on one page 
-# opts = c("p","l","o","b","c","s","S","h") 
-# for(i in 1:length(opts)){ 
-#   heading = paste("type=",opts[i]) 
-#   plot(x, y, type="n", main=heading) 
-#   lines(x, y, type=opts[i]) 
-# }
 ```
 
 

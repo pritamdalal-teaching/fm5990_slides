@@ -1,0 +1,100 @@
+---
+title: "An Introduction to Python"
+author: "Pritam Dalal"
+output: 
+  beamer_presentation:
+    theme: "default"
+    colortheme: "fly"
+    fonttheme: "default"
+    df_print: tibble
+header-includes:
+   - \usepackage{amsmath}
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## The Anaconda Distribution
+
+- In this class we will be using the *Anaconda* distribution of Python.
+\vspace{10pt}
+- A *distribution* is a currated collection of packages.
+\vspace{10pt}
+- In the case of Anaconda, the packages are currated in the sense that they are all relevant to scientific use-cases, and they are all ensured to work together.
+
+
+## Installing The Anaconda Distribution
+
+1. Google "anaconda distribution".
+\vspace{10pt}
+2. Click on the first search result.
+\vspace{10pt}
+3. Download the 3.7 version for your platform (Windows, MacOSX).
+\vspace{10pt}
+4. Follow the installation instructions.
+\vspace{10pt}
+5. We'll have a general discussion as folks install the software.
+
+## A Bit More On Distributions
+
+- You never hear of a *distribution* of Windows or Mac OSX.
+\vspace{10pt}
+- On the other hand, there are many different distributions (distros) of Linux, an open source operating system.
+\vspace{10pt}
+- If you try to install Python, and then all the data science packages separatley, it will take time and might not work.
+\vspace{10pt}
+- The company Continuum Analytics, bundles together Python, as well as all the major science related packages into a distribution called *Anaconda*.
+    - Free to use, but Continuum charges for support. (*freemium*)
+    
+    
+## A Brief Overview
+
+- Python: the programming language.
+\vspace{10pt}
+- Python 2 vs 3: a while back there was a major revision of the language (from 2 to 3) that made a lot of 2 obsolete.  So now there is a rift in the Python world.  This won't affect us, and we will use 3.
+\vspace{10pt}
+- SciPy: a collection of packages related to scientific computing and data analysis.
+    - NumPy: matrix comuptations
+    - SciPy: also a package, optimization
+    - IPython: interactive wrapper around Python
+    - Pandas: analysis dataframes and timeseries
+    - Matplotlib: data visualization
+    - Jupyter: a notebook interface for IPython
+\vspace{10pt}
+
+
+## A Brief Overview
+
+- Python at its core is a scripting language and an object oriented application development framework (think C#).
+
+    - In Python, you will interact with object which are instances of classes.  The objects will have properties and methods.
+    - In R, at our level of use, there is pretty much data and functions.
+\vspace{10pt}
+- SciPy turns Python into a scientific computing framework much like R and Matlab.
+\vspace{10pt}
+- In this class, we are mainly going to use the SciPy ecosystem of packages for the purposes of financial data analysis.
+
+
+## Where Do You Write Code
+
+- In this class, we'll mainly be writing code in Jupyter Notebooks.
+\vspace{10pt}
+- PyCharm is a integrated development environment that we may also use for more involved projects, depending on our needs.
+\vspace{10pt}
+- There are lots of different alternative IDEs for Python.  As compared to R/RStudion, none of the Python IDEs seem as dominant.
+
+
+
+## Self-Study Resources
+
+- *Python for Data Analysis* - Wes McKinney (pdf of first edition is freely available online).
+\vspace{10pt}
+- *Python Data Science Handbook* - Jake VanderPlas (there is a free online version).
+\vspace{10pt}
+- *Automate the Boring Stuff* - Al Sweigert (freely available online, there is also a Udemy course).
+\vspace{10pt}
+- *Python for Data Science and Machine Learning Bootcamp* - this is a Udemy course - it's fine but the examples are boring and the instructor's voice is a little bit grating.
+\vspace{10pt}
+- My tutorials that will be available on the website.

@@ -1,5 +1,5 @@
 ---
-title: "Packages"
+title: "Package Exploration"
 author: "Pritam Dalal"
 output: 
   beamer_presentation:
